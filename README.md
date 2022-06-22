@@ -24,6 +24,7 @@ commissionate dal Servizio Idro-Meteo-Clima (SIMC) di Arpae.
 - Specifica del range per i field numerici dei model
 - Presenza di validatori per `models.JSONField`
 - Uso del decoder e encoder di default per `models.JSONField`
+- Uso del modulo `pickle`
 
 ## Validazione dell'output
 
