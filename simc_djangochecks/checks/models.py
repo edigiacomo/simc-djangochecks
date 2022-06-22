@@ -7,7 +7,7 @@ from django.db.models import (
 )
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from simc_django_checks import utils
+from simc_djangochecks import utils
 
 
 def check_model_fields(model):

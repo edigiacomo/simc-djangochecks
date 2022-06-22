@@ -1,6 +1,5 @@
 import inspect
 import importlib
-from pathlib import Path
 import json
 
 from django.core.checks import register, Tags, Info, Warning
@@ -9,7 +8,7 @@ from django.forms import (
     FileField,
 )
 
-from simc_django_checks import utils
+from simc_djangochecks import utils
 
 
 def check_charfield_form(form_name, form_obj, field_name, field_obj):
@@ -116,10 +115,12 @@ def check_form_fields(form_name, form_obj):
 def check_forms_fields(app_configs, **kwargs):
     errors = []
     for app in utils.list_apps(app_configs):
-        for path in Path(app.path).rglob("forms.py"):
-            spec = importlib.util.spec_from_file_location("forms", path)
-            module = spec.loader.load_module()
+        modulename = f"{app.name}.forms"
+        try:
+            module = importlib.import_module(modulename)
             for name, obj in inspect.getmembers(module):
                 if inspect.isclass(obj) and hasattr(obj, "declared_fields"):
                     errors += check_form_fields(name, obj)
+        except ModuleNotFoundError:
+            pass
     return errors

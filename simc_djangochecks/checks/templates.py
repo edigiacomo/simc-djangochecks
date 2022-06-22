@@ -3,9 +3,9 @@ from pathlib import Path
 import re
 
 from django.conf import settings
-from django.core.checks import register, Tags, Error
+from django.core.checks import register, Tags, Error, Warning
 
-from simc_django_checks import utils
+from simc_djangochecks import utils
 
 
 def list_template_dirs(app_configs):
@@ -28,21 +28,21 @@ def check_safe_tag(app_configs, **kwargs):
                 content = fp.read()
                 if re.search(r'\{%\s*autoescape\s+on', content):
                     errors.append(
-                        Error(
+                        Warning(
                             f"'autoscape on' in template {path}"
                         )
                     )
 
                 if re.search(r'[|]\s*safe', content):
                     errors.append(
-                        Error(
+                        Warning(
                             f"'safe' filter in template {path}"
                         )
                     )
 
                 if re.search(r'[|]\s*safeseq', content):
                     errors.append(
-                        Error(
+                        Warning(
                             f"'safeseq' filter in template {path}"
                         )
                     )

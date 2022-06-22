@@ -1,17 +1,14 @@
 import ast
-import inspect
-import importlib
 from pathlib import Path
-import json
 
-from django.core.checks import register, Tags, Info, Warning
-from django.apps import apps
+from django.core.checks import register, Tags, Warning
 
-from simc_django_checks import utils
+from simc_djangochecks import utils
 
 
 class ReturnHttpResponseVisitor(ast.NodeVisitor):
-    nodes = []
+    def __init__(self):
+        self.nodes = []
 
     def visit_Return(self, node):
         if (

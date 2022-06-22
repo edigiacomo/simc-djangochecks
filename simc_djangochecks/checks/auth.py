@@ -6,7 +6,7 @@ from django.core.checks import register, Tags, Warning, Error
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from simc_django_checks import utils
+from simc_djangochecks import utils
 
 
 @register(Tags.security)
@@ -41,7 +41,8 @@ def check_hashers(app_configs, **kwargs):
 
 
 class MakePasswordVisitor(ast.NodeVisitor):
-    nodes = []
+    def __init__(self):
+        self.nodes = []
 
     def visit_Call(self, node):
         if (
@@ -111,7 +112,8 @@ def check_password_validators(app_configs, **kwargs):
 
 
 class AuthenticateVisitor(ast.NodeVisitor):
-    nodes = []
+    def __init__(self):
+        self.nodes = []
 
     def visit_Call(self, node):
         if (
@@ -133,7 +135,7 @@ def check_authenticate(app_configs, **kwargs):
                 for node in visitor.nodes:
                     errors.append(
                         Warning((
-                            f"{app.name} use authenticate method "
+                            f"{app.name} use authenticate method {path}"
                         ))
                     )
 
