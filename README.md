@@ -47,8 +47,9 @@ $ python manage.py check
 
 ## Validazione dell'output
 
-- Uso di `safe` nei template
+- Uso di `safe` e `safeseq` nei template
 - Uso di `autoescape on`
+- Uso di `mark_safe`
 - Uso di `DjangoTemplates`
 - Disabilitazione dell'autoescape nei settings
 - Uso di `HttpResponse` con `Content-Type: text/html`
