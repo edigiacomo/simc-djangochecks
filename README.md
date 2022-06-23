@@ -58,3 +58,10 @@ $ python manage.py check
 - Uso di `DjangoTemplates`
 - Disabilitazione dell'autoescape nei settings
 - Uso di `HttpResponse` con `Content-Type: text/html`
+
+# Gestione delle sessioni
+
+- Uso del middleware `SessionMiddleware`
+- Uso del serializzatore `JSONSerializer` per le sessioni
+- Corretta configurazione del db o del filesystem come session engine
+- Uso di cookie-based session
