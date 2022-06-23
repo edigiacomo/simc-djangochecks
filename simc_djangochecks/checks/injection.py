@@ -1,7 +1,7 @@
 import ast
 from pathlib import Path
 
-from django.core.checks import register, Tags, Error
+from django.core.checks import register, Tags, Error, Warning
 
 from simc_djangochecks import utils
 
@@ -84,6 +84,33 @@ def check_sqlinjection(app_configs, **kwargs):
                 for node in visitor.nodes:
                     errors.append(
                         Warning(f"{app.name} use extra or extra_content")
+                    )
+
+    return errors
+
+
+class ShellVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.nodes = []
+
+    def visit_keyword(self, node):
+        if node.arg == "shell":
+            self.nodes.append(node)
+
+
+@register(Tags.security)
+def check_shell_true(app_configs, **kwargs):
+    errors = []
+
+    for app in utils.list_apps(app_configs):
+        for path in Path(app.path).rglob("*.py"):
+            with path.open() as fp:
+                module = ast.parse(fp.read())
+                visitor = ShellVisitor()
+                visitor.visit(module)
+                for node in visitor.nodes:
+                    errors.append(
+                        Warning(f"{app.name} use shell=True")
                     )
 
     return errors

@@ -47,7 +47,8 @@ $ python manage.py check
 - Uso di `exec`
 - Uso di `eval`
 - Uso di `RawSQL`
-- Uso dei parametri `extra` e `extra_content`
+- Uso delle keyword `extra` e `extra_content`
+- Uso della keyword `shell`
 
 ## Validazione dell'output
 
