@@ -11,15 +11,15 @@ class ReturnHttpResponseVisitor(ast.NodeVisitor):
         self.nodes = []
 
     def visit_Return(self, node):
-        if (
-            isinstance(node.value, ast.Call)
-            and ((
+        if isinstance(node.value, ast.Call) and (
+            (
                 isinstance(node.value.func, ast.Name)
                 and node.value.func.id == "HttpResponse"
-            ) or (
+            )
+            or (
                 isinstance(node.value.func, ast.Attribute)
                 and node.value.func.attr == "HttpResponse"
-            ))
+            )
         ):
             is_html = False
             if node.value.keywords:

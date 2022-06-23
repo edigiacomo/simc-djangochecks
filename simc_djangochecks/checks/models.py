@@ -2,8 +2,14 @@ import json
 
 from django.core.checks import register, Tags, Info, Warning
 from django.db.models import (
-    BinaryField, CharField, IntegerField, FloatField, JSONField,
-    TextField, FileField, ImageField,
+    BinaryField,
+    CharField,
+    IntegerField,
+    FloatField,
+    JSONField,
+    TextField,
+    FileField,
+    ImageField,
 )
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -40,8 +46,10 @@ def check_model_fields(model):
                     if validator not in field.validators:
                         errors.append(
                             Info(
-                                (f"{cls.__name__} '{field.name}' "
-                                 f"without {validator.__name__}"),
+                                (
+                                    f"{cls.__name__} '{field.name}' "
+                                    f"without {validator.__name__}"
+                                ),
                                 obj=model,
                             )
                         )
@@ -51,7 +59,7 @@ def check_model_fields(model):
                 errors.append(
                     Warning(
                         f"{cls.__name__} '{field.name}'  without validators",
-                        obj=model
+                        obj=model,
                     )
                 )
 

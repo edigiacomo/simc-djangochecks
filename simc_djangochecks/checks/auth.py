@@ -13,27 +13,21 @@ from simc_djangochecks import utils
 def check_hashers(app_configs, **kwargs):
     errors = []
     default_hasher = settings.PASSWORD_HASHERS[0]
-    weak_hasher_regex = re.compile('(sha1|md5|unsalted)', re.IGNORECASE)
+    weak_hasher_regex = re.compile("(sha1|md5|unsalted)", re.IGNORECASE)
 
     if weak_hasher_regex.search(default_hasher):
-        errors.append(
-            Error(f"Weak default hasher: {default_hasher}")
-        )
+        errors.append(Error(f"Weak default hasher: {default_hasher}"))
 
     for hasher in settings.PASSWORD_HASHERS[1:]:
         if weak_hasher_regex.search(hasher):
-            errors.append(
-                Warning(f"Weak hasher: {hasher}")
-            )
+            errors.append(Warning(f"Weak hasher: {hasher}"))
 
     for hasher in settings.PASSWORD_HASHERS:
         try:
             hasher_cls = import_string(hasher)
             salt = hasher_cls().salt()
             if not salt:
-                errors.append(
-                    Error(f"Unsalted hasher: {hasher}")
-                )
+                errors.append(Error(f"Unsalted hasher: {hasher}"))
         except ValueError:
             pass
 
@@ -45,10 +39,7 @@ class MakePasswordVisitor(ast.NodeVisitor):
         self.nodes = []
 
     def visit_Call(self, node):
-        if (
-            isinstance(node.func, ast.Name)
-            and node.func.id == "make_password"
-        ):
+        if isinstance(node.func, ast.Name) and node.func.id == "make_password":
             if len(node.args) > 1:
                 self.nodes.append(node)
             else:
@@ -69,10 +60,12 @@ def check_make_password(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning((
-                            f"{app.name} use make_password "
-                            "with explicit salt or hasher"
-                        ))
+                        Warning(
+                            (
+                                f"{app.name} use make_password "
+                                "with explicit salt or hasher"
+                            )
+                        )
                     )
 
     return errors
@@ -82,9 +75,7 @@ def check_make_password(app_configs, **kwargs):
 def check_password_validators(app_configs, **kwargs):
     errors = []
     if len(settings.AUTH_PASSWORD_VALIDATORS) == 0:
-        errors.append(
-            Error("Empty AUTH_PASSWORD_VALIDATORS")
-        )
+        errors.append(Error("Empty AUTH_PASSWORD_VALIDATORS"))
 
     suggested_validators = (
         "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -103,9 +94,7 @@ def check_password_validators(app_configs, **kwargs):
             o["NAME"] for o in settings.AUTH_PASSWORD_VALIDATORS
         ):
             errors.append(
-                Warning(
-                    f"Missing {validator} in AUTH_PASSWORD_VALIDATORS"
-                )
+                Warning(f"Missing {validator} in AUTH_PASSWORD_VALIDATORS")
             )
 
     return errors
@@ -116,10 +105,7 @@ class AuthenticateVisitor(ast.NodeVisitor):
         self.nodes = []
 
     def visit_Call(self, node):
-        if (
-            isinstance(node.func, ast.Name)
-            and node.func.id == "authenticate"
-        ):
+        if isinstance(node.func, ast.Name) and node.func.id == "authenticate":
             self.nodes.append(node)
 
 
@@ -134,9 +120,7 @@ def check_authenticate(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning((
-                            f"{app.name} use authenticate method {path}"
-                        ))
+                        Warning((f"{app.name} use authenticate method {path}"))
                     )
 
     return errors
@@ -153,9 +137,13 @@ def check_authentication_backends(app_configs, **kwargs):
 
     for backend in settings.AUTHENTICATION_BACKENDS:
         if backend not in allowed_backends:
-            errors.append(Error((
-                "AUTHENTICATION_BACKENDS: unknown authentication "
-                f"backend {backend}"
-            )))
+            errors.append(
+                Error(
+                    (
+                        "AUTHENTICATION_BACKENDS: unknown authentication "
+                        f"backend {backend}"
+                    )
+                )
+            )
 
     return errors

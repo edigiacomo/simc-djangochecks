@@ -4,7 +4,10 @@ import json
 
 from django.core.checks import register, Tags, Info, Warning
 from django.forms import (
-    CharField, IntegerField, FloatField, JSONField,
+    CharField,
+    IntegerField,
+    FloatField,
+    JSONField,
     FileField,
 )
 
@@ -27,12 +30,9 @@ def check_charfield_form(form_name, form_obj, field_name, field_obj):
 
 def check_numberfield_form(form_name, form_obj, field_name, field_obj):
     errors = []
-    if any((
-        isinstance(field_obj, model)
-        for model in (
-            FloatField, IntegerField
-        )
-    )):
+    if any(
+        (isinstance(field_obj, model) for model in (FloatField, IntegerField))
+    ):
         if not hasattr(field_obj, "min_value"):
             errors.append(
                 Info(
@@ -104,8 +104,10 @@ def check_form_fields(form_name, form_obj):
             check_filefield_form,
         ):
             errors += check(
-                form_name, form_obj,
-                field_name, field_obj,
+                form_name,
+                form_obj,
+                field_name,
+                field_obj,
             )
 
     return errors

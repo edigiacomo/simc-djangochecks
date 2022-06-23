@@ -1,7 +1,7 @@
 import ast
 from pathlib import Path
 
-from django.core.checks import register, Tags, Warning, Error
+from django.core.checks import register, Tags, Error
 
 from simc_djangochecks import utils
 
@@ -30,8 +30,6 @@ def check_pickle(app_configs, **kwargs):
                 visitor = PickleVisitor()
                 visitor.visit(node)
                 for node in visitor.nodes:
-                    errors.append(
-                        Error("Detected pickle usage")
-                    )
+                    errors.append(Error("Detected pickle usage"))
 
     return errors

@@ -11,7 +11,7 @@ from simc_djangochecks import utils
 def list_template_dirs(app_configs):
     dirs = []
     for template in settings.TEMPLATES:
-        dirs += template['DIRS']
+        dirs += template["DIRS"]
 
     for app in app_configs:
         dirs.append(os.path.join(app.path, "templates"))
@@ -26,25 +26,17 @@ def check_safe_tag(app_configs, **kwargs):
         for path in Path(template_dir).rglob("*.htm*"):
             with path.open() as fp:
                 content = fp.read()
-                if re.search(r'\{%\s*autoescape\s+on', content):
+                if re.search(r"\{%\s*autoescape\s+on", content):
                     errors.append(
-                        Warning(
-                            f"'autoscape on' in template {path}"
-                        )
+                        Warning(f"'autoscape on' in template {path}")
                     )
 
-                if re.search(r'[|]\s*safe', content):
-                    errors.append(
-                        Warning(
-                            f"'safe' filter in template {path}"
-                        )
-                    )
+                if re.search(r"[|]\s*safe", content):
+                    errors.append(Warning(f"'safe' filter in template {path}"))
 
-                if re.search(r'[|]\s*safeseq', content):
+                if re.search(r"[|]\s*safeseq", content):
                     errors.append(
-                        Warning(
-                            f"'safeseq' filter in template {path}"
-                        )
+                        Warning(f"'safeseq' filter in template {path}")
                     )
 
     return errors
@@ -58,18 +50,12 @@ def check_template_backend(app_configs, **kwargs):
     for template in settings.TEMPLATES:
         if template["BACKEND"] != default_template:
             errors.append(
-                Error(
-                    f"Unknown template backend {template['BACKEND']}"
-                )
+                Error(f"Unknown template backend {template['BACKEND']}")
             )
 
         try:
             if not template["OPTIONS"]["autoescape"]:
-                errors.append(
-                    Error(
-                        "autoescape off in TEMPLATE"
-                    )
-                )
+                errors.append(Error("autoescape off in TEMPLATE"))
         except KeyError:
             pass
 
