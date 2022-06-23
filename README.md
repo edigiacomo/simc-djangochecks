@@ -44,6 +44,10 @@ $ python manage.py check
 - Presenza di validatori per `models.JSONField`
 - Uso del decoder e encoder di default per `models.JSONField`
 - Uso del modulo `pickle`
+- Uso di `exec`
+- Uso di `eval`
+- Uso di `RawSQL`
+- Uso dei parametri `extra` e `extra_content`
 
 ## Validazione dell'output
 
