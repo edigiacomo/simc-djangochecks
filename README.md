@@ -3,6 +3,25 @@
 Questa app contiene una serie di check per le applicazioni Django sviluppate o
 commissionate dal Servizio Idro-Meteo-Clima (SIMC) di Arpae.
 
+## Utilizzo
+
+Aggiungere l'app alle `INSTALLED_APP` dell'applicazione:
+
+```python
+# settings.py
+# settings.py
+INSTALLED_APPS = [
+    # ....
+    'simc_djangochecks'
+]
+```
+
+Eseguire il check:
+
+```
+$ python manage.py check
+```
+
 ## Autenticazione e gestione password:
 
 - Hashers: sono da evitare hasher basati su SHA-1 e MD5 e unsalted.
