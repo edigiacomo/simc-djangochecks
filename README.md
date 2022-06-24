@@ -69,3 +69,6 @@ $ python manage.py check
     diversa da `/tmp`, `MEDIA_ROOT` e `STATIC_ROOT`
   - Cache: deve usare Redis
 - Uso di cookie-based session: vietato
+- Cookie di sessione con attributo `HttpOnly`
+- Cookie di sessione con attributo `SameSite=Lax|Strict`
+- Cookie di sessione con attributo `Secure`

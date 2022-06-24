@@ -93,3 +93,19 @@ def check_session_type(app_configs, **kwargs):
         )
 
     return errors
+
+
+@register(Tags.security)
+def check_cookie_attribures(**kwargs):
+    errors = []
+
+    if not settings.SESSION_COOKIE_HTTPONLY:
+        errors.append(Error("SESSION_COOKIE_HTTPONLY must be True"))
+
+    if settings.SESSION_COOKIE_SAMESITE not in ("Strict", "Lax"):
+        errors.append(Error("SESSION_COOKIE_SAMESITE must be Strict or Lax"))
+
+    if not settings.SESSION_COOKIE_SECURE:
+        errors.append(Error("SESSION_COOKIE_SECURE must be True"))
+
+    return errors

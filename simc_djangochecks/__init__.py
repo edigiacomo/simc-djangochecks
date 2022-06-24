@@ -1,1 +1,11 @@
-from .checks import models, forms, views, templates, auth, decoders  # noqa
+from .checks import ( # noqa
+    auth,
+    decoders,
+    encoders,
+    forms,
+    injection,
+    models,
+    session,
+    templates,
+    views,
+)
