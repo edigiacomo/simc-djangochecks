@@ -63,5 +63,9 @@ $ python manage.py check
 
 - Uso del middleware `SessionMiddleware`
 - Uso del serializzatore `JSONSerializer` per le sessioni
-- Corretta configurazione del db o del filesystem come session engine
-- Uso di cookie-based session
+- Corretta configurazione del session engine:
+  - Database: installazione della corrispondente app
+  - Filesystem: la directory di salvataggio deve essere
+    diversa da `/tmp`, `MEDIA_ROOT` e `STATIC_ROOT`
+  - Cache: deve usare Redis
+- Uso di cookie-based session: vietato

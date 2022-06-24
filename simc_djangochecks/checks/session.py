@@ -1,4 +1,5 @@
 import tempfile
+from pathlib import Path
 
 from django.core.checks import register, Tags, Warning, Error
 from django.conf import settings
@@ -43,14 +44,40 @@ def check_session_type(app_configs, **kwargs):
         )
     elif (
         settings.SESSION_ENGINE == "django.contrib.sessions.backends.file"
-        and settings.SESSION_FILE_PATH == tempfile.gettempdir()
     ):
-        errors.append(
-            Error((
-                "SESSION_ENGINE django.contrib.sessions.backends.file "
-                "requires a SESSION_FILE_PATH != {tempfile.gettempdir()}"
-            ))
+        cache_path = settings.SESSION_FILE_PATH
+        if cache_path == tempfile.gettempdir():
+            errors.append(
+                Error((
+                    "SESSION_ENGINE django.contrib.sessions.backends.file "
+                    "requires a SESSION_FILE_PATH != {tempfile.gettempdir()}"
+                ))
+            )
+        elif (
+            Path(cache_path) == Path(settings.MEDIA_ROOT)
+            or Path(settings.MEDIA_ROOT) in Path(cache_path).parents
+        ):
+            errors.append(
+                Error("SESSION_FILE_PATH in MEDIA_ROOT")
+            )
+        elif (
+            Path(cache_path) == Path(settings.STATIC_ROOT)
+            or Path(settings.STATIC_ROOT) in Path(cache_path).parents
+        ):
+            errors.append(
+                Error("SESSION_FILE_PATH in STATIC_ROOT")
+            )
+    elif (
+        settings.SESSION_ENGINE in (
+            "django.contrib.sessions.backends.cache",
+            "django.contrib.sessions.backends.cached_db",
         )
+    ):
+        cache = settings.CACHES[settings.SESSION_CACHE_ALIAS]["BACKEND"]
+        if cache != "django_redis.cache.RedisCache":
+            errors.append(
+                Error("Cached session should use redis as backend")
+            )
     elif settings.SESSION_ENGINE == ("django.contrib.sessions."
                                      "backends.signed_cookies"):
         errors.append(
