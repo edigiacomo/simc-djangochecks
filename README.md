@@ -72,3 +72,5 @@ $ python manage.py check
 - Cookie di sessione con attributo `HttpOnly`
 - Cookie di sessione con attributo `SameSite=Lax|Strict`
 - Cookie di sessione con attributo `Secure`
+- Presenza di `CsrfViewMiddleware`
+- Uso di `@csrf_exempt`
