@@ -74,3 +74,7 @@ $ python manage.py check
 - Cookie di sessione con attributo `Secure`
 - Presenza di `CsrfViewMiddleware`
 - Uso di `@csrf_exempt`
+
+# Logging
+
+- Corretta configurazione per rsyslog in produzione
