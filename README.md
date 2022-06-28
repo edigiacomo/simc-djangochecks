@@ -77,4 +77,5 @@ $ python manage.py check
 
 # Logging
 
+- Passaggio di `X-Request-Id` al logger
 - Corretta configurazione per rsyslog in produzione
