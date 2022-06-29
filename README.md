@@ -79,3 +79,9 @@ $ python manage.py check
 
 - Passaggio di `X-Request-Id` al logger
 - Corretta configurazione per rsyslog in produzione
+
+# Configurazione
+
+- Assegnamento di settings fuori da settings.py
+- Hard-coded `SECRET_KEY`
+- `ALLOWED_HOSTS` non deve contenere la wildcard `*`
