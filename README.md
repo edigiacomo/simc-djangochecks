@@ -86,8 +86,14 @@ $ python manage.py check
 - Hard-coded `SECRET_KEY`
 - `ALLOWED_HOSTS` non deve contenere la wildcard `*`
 - Informazioni potenzialmente sensibili hard-coded
-- Path database SQLite deve essere diverso da `MEDIA_ROOT`, `STATIC_ROOT` o `/var/www`
+- Path database SQLite deve essere diverso da `MEDIA_ROOT`, `STATIC_ROOT` o `/var/www/html`
 - Database SQLite non deve essere leggibile da `others`
 - `DATA_UPLOAD_MAX_MEMORY_SIZE` non deve essere `None`
 - `DATA_UPLOAD_MAX_NUMBER_FIELDS` non deve essere `None`
 - `DEFAULT_HASHING_ALGORITHM` non deve essere `sha1`
+- `FILE_UPLOAD_PERMISSIONS` non deve essere accessibile a `other`
+- `FILE_UPLOAD_DIRECTORY_PERMISSIONS` non deve essere accessibile a `other`
+- `FILE_UPLOAD_PERMISSIONS` non deve avere permessi di esecuzione
+- `FILE_UPLOADED_TEMP_DIR` non deve essere accessibile a `group` e `other`
+- `FILE_UPLOADED_TEMP_DIR` non deve essere uguale o contenuto in `MEDIA_ROOT`,
+  `STATIC_ROOT` o `/var/www/html`

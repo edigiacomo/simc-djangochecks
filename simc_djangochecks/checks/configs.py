@@ -1,3 +1,4 @@
+import stat
 import re
 import os
 import sys
@@ -254,5 +255,78 @@ def check_hashing_algorithm(**kwargs):
         errors.append(
             Error("DEFAULT_HASHING_ALGORITHM is sha1")
         )
+
+    return errors
+
+
+@register(Tags.security)
+def check_file_upload_permissions(**kwargs):
+    errors = []
+
+    if (
+        settings.FILE_UPLOAD_PERMISSIONS
+        & (stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
+    ):
+        errors.append(
+            Warning(
+                "FILE_UPLOAD_PERMISSIONS has permissions for other"
+            )
+        )
+
+    if (
+        settings.FILE_UPLOAD_PERMISSIONS
+        & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    ):
+        errors.append(
+            Warning(
+                "FILE_UPLOAD_PERMISSIONS has execution permissions"
+            )
+        )
+
+    if (
+        settings.FILE_UPLOAD_DIRECTORY_PERMISSIONS
+        & (stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
+    ):
+        errors.append(
+            Warning(
+                "FILE_UPLOAD_DIRECTORY_PERMISSIONS has permissions for other"
+            )
+        )
+
+    return errors
+
+
+@register(Tags.security)
+def check_file_upload_tmpdir_permissions(**kwargs):
+    errors = []
+
+    tmpdir = Path(settings.FILE_UPLOADED_TEMP_DIR)
+    tmpdir_mode = os.stat(tmpdir).st_mode
+
+    if tmpdir_mode & (stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH):
+        errors.append(
+            Warning(
+                "FILE_UPLOADED_TEMP_DIR has permissions for other"
+            )
+        )
+
+    if tmpdir_mode & (stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP):
+        errors.append(
+            Warning(
+                "FILE_UPLOADED_TEMP_DIR has permissions for group"
+            )
+        )
+
+    for name, path in (
+        "MEDIA_ROOT", Path(settings.MEDIA_ROOT),
+        "STATIC_ROOT", Path(settings.STATIC_ROOT),
+        "/var/www/html", Path("/var/www/html")
+    ):
+        if tmpdir == path or path in tmpdir:
+            errors.append(
+                Error(
+                    f"FILE_UPLOADED_TEMP_DIR in {name}"
+                )
+            )
 
     return errors
