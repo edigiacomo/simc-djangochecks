@@ -1,6 +1,6 @@
 import json
 
-from django.core.checks import register, Tags, Info, Warning
+from django.core.checks import register, Tags, Warning
 from django.db.models import (
     BinaryField,
     CharField,
@@ -22,8 +22,10 @@ def check_model_fields(model):
         if isinstance(field, BinaryField):
             errors.append(
                 Warning(
-                    f"Field '{field.name}' is a BinaryField",
+                    f"Il file '{field.name}' è un BinaryField",
                     obj=model,
+                    hint="Usa un FileField o un ImageField",
+                    id="simc_djangochecks.W003",
                 )
             )
 
@@ -34,9 +36,10 @@ def check_model_fields(model):
                 and not field.choices
             ):
                 errors.append(
-                    Info(
-                        f"{cls.__name__} '{field.name}'  without validators",
+                    Warning(
+                        f"{cls.__name__} '{field.name}' senza validatori",
                         obj=model,
+                        id="simc_djangochecks.W004",
                     )
                 )
 
@@ -45,12 +48,13 @@ def check_model_fields(model):
                 for validator in (MinValueValidator, MaxValueValidator):
                     if validator not in field.validators:
                         errors.append(
-                            Info(
+                            Warning(
                                 (
                                     f"{cls.__name__} '{field.name}' "
-                                    f"without {validator.__name__}"
+                                    f"senza validatore {validator.__name__}"
                                 ),
                                 obj=model,
+                                id="simc_djangochecks.W005",
                             )
                         )
 
@@ -58,8 +62,9 @@ def check_model_fields(model):
             if type(field) == cls and not field.validators:
                 errors.append(
                     Warning(
-                        f"{cls.__name__} '{field.name}'  without validators",
+                        f"{cls.__name__} '{field.name}' senza validatori",
                         obj=model,
+                        id="simc_djangochecks.W006",
                     )
                 )
 
@@ -67,16 +72,18 @@ def check_model_fields(model):
             if not isinstance(field.encoder, json.JSONEncoder):
                 errors.append(
                     Warning(
-                        f"Field {field.name} with a custom encoder",
+                        f"Field {field.name} con un encoder custom",
                         obj=model,
+                        id="simc_djangochecks.W007",
                     )
                 )
 
             if not isinstance(field.decoder, json.JSONDecoder):
                 errors.append(
                     Warning(
-                        f"Field {field.name} with a custom decoder",
+                        f"Field {field.name} con un decoder custom",
                         obj=model,
+                        id="simc_djangochecks.W008",
                     )
                 )
 
