@@ -85,3 +85,9 @@ $ python manage.py check
 - Assegnamento di settings fuori da settings.py
 - Hard-coded `SECRET_KEY`
 - `ALLOWED_HOSTS` non deve contenere la wildcard `*`
+- Informazioni potenzialmente sensibili hard-coded
+- Path database SQLite deve essere diverso da `MEDIA_ROOT`, `STATIC_ROOT` o `/var/www`
+- Database SQLite non deve essere leggibile da `others`
+- `DATA_UPLOAD_MAX_MEMORY_SIZE` non deve essere `None`
+- `DATA_UPLOAD_MAX_NUMBER_FIELDS` non deve essere `None`
+- `DEFAULT_HASHING_ALGORITHM` non deve essere `sha1`

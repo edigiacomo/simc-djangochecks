@@ -1,7 +1,9 @@
+import re
 import os
 import sys
 import ast
 from pathlib import Path
+import urllib
 
 from django.core.checks import register, Tags, Warning, Error
 from django.conf import settings
@@ -102,8 +104,155 @@ def check_secret_key(**kwargs):
 
 
 @register(Tags.security)
-def check_allowed_hosts(**kwarg):
+def check_allowed_hosts(**kwargs):
     if "*" in settings.ALLOWED_HOSTS:
         return [
             Error("ALLOWED_HOSTS contains wildcard '*'")
         ]
+
+
+@register(Tags.security)
+def check_cache(**kwargs):
+    errors = []
+
+    for name, cache in settings.CACHES.items():
+        if cache["BACKEND"] != "django_redis .cache. RedisCache":
+            errors.append(
+                Warning(
+                    f"Cache {name} with backend {cache['BACKEND']}"
+                )
+            )
+
+        if urllib.parse.urlparse(cache["LOCATION"]).password is not None:
+            errors.append(
+                Error(
+                    f"Cache {name} with password in LOCATION"
+                )
+            )
+
+    return errors
+
+
+SENSITIVE_INFO_REGEX = re.compile(r'(pass|secret|token|api|key|signature',
+                                  flags=re.IGNORE_CASE)
+
+
+class HardcodedPasswordVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.errors = []
+
+    def visit_Assign(self, node):
+        if isinstance(node.value, ast.Constant):
+            for target in node.targets:
+                if (
+                    isinstance(target, ast.Node)
+                    and SENSITIVE_INFO_REGEX.search(target.id)
+                ):
+                    self.errors.append(
+                        Error((
+                            "Potential hardcoded sensitive "
+                            f"information {target.id}"
+                        ))
+                    )
+
+    def visit_Dict(self, node):
+        has_constant_value = False
+        for value in node.values:
+            if isinstance(value, ast.Constant):
+                has_constant_value = True
+                break
+
+        if has_constant_value:
+            for key in node.keys:
+                key_value_to_check = None
+                if isinstance(key, ast.Name):
+                    key_value_to_check = key.id
+                elif isinstance(key, ast.Constant):
+                    key_value_to_check = key.value
+
+                if (
+                    key_value_to_check is not None
+                    and SENSITIVE_INFO_REGEX.search(key_value_to_check)
+                ):
+                    self.errors.append(
+                        Error((
+                            "Potential hardcoded sensitive "
+                            f"information {key_value_to_check}"
+                        ))
+                    )
+
+
+@register(Tags.security)
+def check_hardcoded_passwords_in_settings(**kwargs):
+    module = get_settings_module_ast()
+    return HardcodedPasswordVisitor().visit(module).errors
+
+
+@register(Tags.security)
+def check_sqlite_path(**kwargs):
+    errors = []
+
+    for name, database in settings.DATABASES.items():
+        if database["ENGINE"] == "django.db.backends.sqlite3":
+            dbpath = Path(database["NAME"])
+
+            if (
+                dbpath == Path(settings.MEDIA_ROOT)
+                or Path(settings.MEDIA_ROOT) in dbpath.parents
+            ):
+                errors.append(
+                    Error("Database {name} in MEDIA_ROOT")
+                )
+
+            if (
+                dbpath == Path(settings.STATIC_ROOT)
+                or Path(settings.STATIC_ROOT) in dbpath.parents
+            ):
+                errors.append(
+                    Error("Database {name} in STATIC_ROOT")
+                )
+
+            if (
+                dbpath == Path("/var/www")
+                or Path("/var/www") in dbpath.parents
+            ):
+                errors.append(
+                    Error("Database {name} in /var/www")
+                )
+
+            db_mode = os.stat(dbpath).st_mode
+            if oct(db_mode)[-1] != 0:
+                errors.append(
+                    Error("Database {name} permissions: {db_mode}")
+                )
+
+    return errors
+
+
+@register(Tags.security)
+def check_data_upload(**kwargs):
+    errors = []
+
+    if settings.DATA_UPLOAD_MAX_MEMORY_SIZE is None:
+        errors.append(
+            Error("DATA_UPLOAD_MAX_MEMORY_SIZE is None")
+        )
+
+    if settings.DATA_UPLOAD_MAX_NUMBER_FIELDS is None:
+        errors.append(
+            Error("DATA_UPLOAD_MAX_NUMBER_FIELDS is None")
+        )
+
+    return errors
+
+
+@register(Tags.security)
+def check_hashing_algorithm(**kwargs):
+    errors = []
+
+    if settings.DEFAULT_HASHING_ALGORITHM == "sha1":
+        errors.append(
+            Error("DEFAULT_HASHING_ALGORITHM is sha1")
+        )
+
+    return errors
