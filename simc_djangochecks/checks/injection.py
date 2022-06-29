@@ -1,7 +1,7 @@
 import ast
 from pathlib import Path
 
-from django.core.checks import register, Tags, Error, Warning
+from django.core.checks import register, Tags, Error
 
 from simc_djangochecks import utils
 
@@ -52,12 +52,18 @@ def check_exec(app_configs, **kwargs):
         for path in Path(app.path).rglob("*.py"):
             with path.open() as fp:
                 module = ast.parse(fp.read())
-                for call in ("exec", "eval"):
+                for id, call in (
+                    ("E009", "exec"),
+                    ("E010", "eval"),
+                ):
                     visitor = ForbiddenCallVisitor(call)
                     visitor.visit(module)
                     for node in visitor.nodes:
                         errors.append(
-                            Error(f"{app.name} use {call}")
+                            Error(
+                                f"{app.name} usa {call}",
+                                id=id,
+                            )
                         )
 
     return errors
@@ -76,14 +82,20 @@ def check_sqlinjection(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Error(f"{app.name} use RawSQL")
+                        Error(
+                            f"{app.name} usa RawSQL",
+                            id="E011",
+                        )
                     )
 
                 visitor = ExtraVisitor()
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning(f"{app.name} use extra or extra_content")
+                        Error(
+                            f"{app.name} usa extra/extra_content",
+                            id="E012",
+                        )
                     )
 
     return errors
@@ -110,7 +122,7 @@ def check_shell_true(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning(f"{app.name} use shell=True")
+                        Error(f"{app.name} usa shell=True", id="E013")
                     )
 
     return errors
