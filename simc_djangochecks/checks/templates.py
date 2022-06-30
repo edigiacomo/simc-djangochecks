@@ -28,15 +28,26 @@ def check_safe_tag(app_configs, **kwargs):
                 content = fp.read()
                 if re.search(r"\{%\s*autoescape\s+on", content):
                     errors.append(
-                        Warning(f"'autoscape on' in template {path}")
+                        Error(
+                            f"Uso di 'autoscape on' nel template {path}",
+                            id="simc_djangochecks.E015",
+                        )
                     )
 
                 if re.search(r"[|]\s*safe", content):
-                    errors.append(Warning(f"'safe' filter in template {path}"))
+                    errors.append(
+                        Error(
+                            f"Uso del 'safe' filter nel template {path}",
+                            id="simc_djangochecks.E016",
+                        )
+                    )
 
                 if re.search(r"[|]\s*safeseq", content):
                     errors.append(
-                        Warning(f"'safeseq' filter in template {path}")
+                        Error(
+                            f"Uso di 'safeseq' filter in template {path}",
+                            id="simc_djangochecks.E017",
+                        )
                     )
 
     return errors
@@ -48,14 +59,23 @@ def check_template_backend(app_configs, **kwargs):
 
     default_template = "django.template.backends.django.DjangoTemplates"
     for template in settings.TEMPLATES:
-        if template["BACKEND"] != default_template:
+        backend = template["BACKEND"]
+        if backend != default_template:
             errors.append(
-                Error(f"Unknown template backend {template['BACKEND']}")
+                Warning(
+                    f"Uso di template {backend} invece di {default_template}",
+                    id="simc_djangochecks.W018",
+                )
             )
 
         try:
             if not template["OPTIONS"]["autoescape"]:
-                errors.append(Error("autoescape off in TEMPLATE"))
+                errors.append(
+                    Error(
+                        "autoescape off in TEMPLATE",
+                        id="simc_djangochecks.E019",
+                    )
+                )
         except KeyError:
             pass
 

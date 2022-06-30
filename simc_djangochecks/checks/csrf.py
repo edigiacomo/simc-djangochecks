@@ -28,7 +28,10 @@ def check_csrf_exempt(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning(f"{app.name} use csrf_exempt decorator")
+                        Warning(
+                            f"{app.name} usa il decorator csrf_exempt",
+                            id="simc_djangochecks.W042",
+                        )
                     )
 
     return errors
@@ -38,5 +41,8 @@ def check_csrf_exempt(app_configs, **kwargs):
 def check_csrf_middleware(**kwargs):
     if "django.middleware.csrf.CsrfViewMiddleware" not in settings.MIDDLEWARE:
         return [
-            Error("CsrfViewMiddleware not found in MIDDLEWARE")
+            Error(
+                "CsrfViewMiddleware non presente in MIDDLEWARE",
+                id="simc_djangochecks.E043",
+            )
         ]

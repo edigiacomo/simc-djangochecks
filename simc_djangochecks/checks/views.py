@@ -1,7 +1,7 @@
 import ast
 from pathlib import Path
 
-from django.core.checks import register, Tags, Warning
+from django.core.checks import register, Tags, Error
 
 from simc_djangochecks import utils
 
@@ -49,8 +49,10 @@ def check_response(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning(
-                            f"View in app {app.name} return html HttpResponse"
+                        Error(
+                            f"{app.name} usa HttpResponse in html",
+                            hint="Usa un template",
+                            id="simc_djangochecks.E014",
                         )
                     )
 

@@ -63,8 +63,9 @@ def check_settings_modification(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning(
-                            "Assign settings outside of settings.py"
+                        Error(
+                            "Settings modificato fuori dalla configurazione",
+                            id="simc_djangochecks.E051",
                         )
                     )
 
@@ -94,7 +95,10 @@ class SecretKeyVisitor(ast.NodeVisitor):
             and isinstance(node.value, ast.Constant)
         ):
             self.errors.append(
-                Error("Hardcoded SECRET_KEY")
+                Error(
+                    "Hardcoded SECRET_KEY",
+                    id="simc_djangochecks.E052",
+                )
             )
 
 
@@ -108,7 +112,10 @@ def check_secret_key(**kwargs):
 def check_allowed_hosts(**kwargs):
     if "*" in settings.ALLOWED_HOSTS:
         return [
-            Error("ALLOWED_HOSTS contains wildcard '*'")
+            Error(
+                "ALLOWED_HOSTS contiene la wildcard '*'",
+                id="simc_djangochecks.E053",
+            )
         ]
 
 
@@ -120,14 +127,19 @@ def check_cache(**kwargs):
         if cache["BACKEND"] != "django_redis .cache. RedisCache":
             errors.append(
                 Warning(
-                    f"Cache {name} with backend {cache['BACKEND']}"
+                    (
+                        f"Cache {name} con backend non consigliato: "
+                        f"{cache['BACKEND']}"
+                    ),
+                    id="simc_djangochecks.W054",
                 )
             )
 
-        if urllib.parse.urlparse(cache["LOCATION"]).password is not None:
+        elif urllib.parse.urlparse(cache["LOCATION"]).password is not None:
             errors.append(
                 Error(
-                    f"Cache {name} with password in LOCATION"
+                    f"Redis cache {name} con password in LOCATION",
+                    id="simc_djangochecks.E055",
                 )
             )
 
@@ -140,7 +152,7 @@ SENSITIVE_INFO_REGEX = re.compile(r'(pass|secret|token|api|key|signature',
 
 class HardcodedPasswordVisitor(ast.NodeVisitor):
     def __init__(self):
-        self.errors = []
+        self.keys = []
 
     def visit_Assign(self, node):
         if isinstance(node.value, ast.Constant):
@@ -149,12 +161,7 @@ class HardcodedPasswordVisitor(ast.NodeVisitor):
                     isinstance(target, ast.Node)
                     and SENSITIVE_INFO_REGEX.search(target.id)
                 ):
-                    self.errors.append(
-                        Error((
-                            "Potential hardcoded sensitive "
-                            f"information {target.id}"
-                        ))
-                    )
+                    self.keys.append(target.id)
 
     def visit_Dict(self, node):
         has_constant_value = False
@@ -175,56 +182,56 @@ class HardcodedPasswordVisitor(ast.NodeVisitor):
                     key_value_to_check is not None
                     and SENSITIVE_INFO_REGEX.search(key_value_to_check)
                 ):
-                    self.errors.append(
-                        Error((
-                            "Potential hardcoded sensitive "
-                            f"information {key_value_to_check}"
-                        ))
-                    )
+                    self.keys.append(key_value_to_check)
 
 
 @register(Tags.security)
 def check_hardcoded_passwords_in_settings(**kwargs):
+    errors = []
     module = get_settings_module_ast()
-    return HardcodedPasswordVisitor().visit(module).errors
+    for key in HardcodedPasswordVisitor().visit(module).keys:
+        errors.append(
+            Error(
+                f"Il settings riservato {key} ha il valore harcoded",
+                id="simc_djangochecks.E056",
+            )
+        )
 
 
 @register(Tags.security)
 def check_sqlite_path(**kwargs):
     errors = []
 
-    for name, database in settings.DATABASES.items():
+    for dbname, database in settings.DATABASES.items():
         if database["ENGINE"] == "django.db.backends.sqlite3":
             dbpath = Path(database["NAME"])
 
-            if (
-                dbpath == Path(settings.MEDIA_ROOT)
-                or Path(settings.MEDIA_ROOT) in dbpath.parents
+            for name, path in (
+                "MEDIA_ROOT", Path(settings.MEDIA_ROOT),
+                "STATIC_ROOT", Path(settings.STATIC_ROOT),
+                "/var/www/html", Path("/var/www/html")
             ):
-                errors.append(
-                    Error("Database {name} in MEDIA_ROOT")
-                )
-
-            if (
-                dbpath == Path(settings.STATIC_ROOT)
-                or Path(settings.STATIC_ROOT) in dbpath.parents
-            ):
-                errors.append(
-                    Error("Database {name} in STATIC_ROOT")
-                )
-
-            if (
-                dbpath == Path("/var/www")
-                or Path("/var/www") in dbpath.parents
-            ):
-                errors.append(
-                    Error("Database {name} in /var/www")
-                )
+                if (
+                    dbpath == path
+                    or path in dbpath.parents
+                ):
+                    errors.append(
+                        Error(
+                            f"Database SQLite {dbname} in {name}",
+                            id="simc_djangochecks.E057",
+                        )
+                    )
 
             db_mode = os.stat(dbpath).st_mode
             if oct(db_mode)[-1] != 0:
                 errors.append(
-                    Error("Database {name} permissions: {db_mode}")
+                    Error(
+                        (
+                            "Permessi non validi del database SQLite"
+                            f"{dbname}: {db_mode}"
+                        ),
+                        id="simc_djangochecks.E058",
+                    )
                 )
 
     return errors
@@ -236,12 +243,20 @@ def check_data_upload(**kwargs):
 
     if settings.DATA_UPLOAD_MAX_MEMORY_SIZE is None:
         errors.append(
-            Error("DATA_UPLOAD_MAX_MEMORY_SIZE is None")
+            Error(
+                "DATA_UPLOAD_MAX_MEMORY_SIZE è None",
+                hint="Usa un valore opportuno rispetto all'applicazione",
+                id="simc_djangochecks.E059",
+            )
         )
 
     if settings.DATA_UPLOAD_MAX_NUMBER_FIELDS is None:
         errors.append(
-            Error("DATA_UPLOAD_MAX_NUMBER_FIELDS is None")
+            Error(
+                "DATA_UPLOAD_MAX_NUMBER_FIELDS è None",
+                hint="Usa un valore opportuno rispetto all'applicazione",
+                id="simc_djangochecks.E060",
+            )
         )
 
     return errors
@@ -253,7 +268,10 @@ def check_hashing_algorithm(**kwargs):
 
     if settings.DEFAULT_HASHING_ALGORITHM == "sha1":
         errors.append(
-            Error("DEFAULT_HASHING_ALGORITHM is sha1")
+            Error(
+                "DEFAULT_HASHING_ALGORITHM is sha1",
+                id="simc_djangochecks.E061",
+            )
         )
 
     return errors
@@ -268,8 +286,9 @@ def check_file_upload_permissions(**kwargs):
         & (stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
     ):
         errors.append(
-            Warning(
-                "FILE_UPLOAD_PERMISSIONS has permissions for other"
+            Error(
+                "FILE_UPLOAD_PERMISSIONS ha i permessi per 'other'",
+                id="simc_djangochecks.E062",
             )
         )
 
@@ -278,8 +297,9 @@ def check_file_upload_permissions(**kwargs):
         & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     ):
         errors.append(
-            Warning(
-                "FILE_UPLOAD_PERMISSIONS has execution permissions"
+            Error(
+                "FILE_UPLOAD_PERMISSIONS ha permessi di esecuzione",
+                id="simc_djangochecks.E063",
             )
         )
 
@@ -288,8 +308,9 @@ def check_file_upload_permissions(**kwargs):
         & (stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
     ):
         errors.append(
-            Warning(
-                "FILE_UPLOAD_DIRECTORY_PERMISSIONS has permissions for other"
+            Error(
+                "FILE_UPLOAD_DIRECTORY_PERMISSIONS ha i permessi per 'other'",
+                id="simc_djangochecks.E064",
             )
         )
 
@@ -305,15 +326,17 @@ def check_file_upload_tmpdir_permissions(**kwargs):
 
     if tmpdir_mode & (stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH):
         errors.append(
-            Warning(
-                "FILE_UPLOADED_TEMP_DIR has permissions for other"
+            Error(
+                "FILE_UPLOADED_TEMP_DIR ha i permessi per 'other'",
+                id="simc_djangochecks.E065",
             )
         )
 
     if tmpdir_mode & (stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP):
         errors.append(
-            Warning(
-                "FILE_UPLOADED_TEMP_DIR has permissions for group"
+            Error(
+                "FILE_UPLOADED_TEMP_DIR ha i permessi per 'group'",
+                id="simc_djangochecks.E066",
             )
         )
 
@@ -325,7 +348,8 @@ def check_file_upload_tmpdir_permissions(**kwargs):
         if tmpdir == path or path in tmpdir:
             errors.append(
                 Error(
-                    f"FILE_UPLOADED_TEMP_DIR in {name}"
+                    f"FILE_UPLOADED_TEMP_DIR in {name}",
+                    id="simc_djangochecks.E067",
                 )
             )
 

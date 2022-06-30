@@ -27,7 +27,8 @@ def check_mark_safe(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Warning(f"{app.name} use mark_safe")
+                        Warning(f"{app.name} usa mark_safe"),
+                        id="simc_djangochecks.W020",
                     )
 
     return errors

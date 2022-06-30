@@ -10,7 +10,10 @@ def check_requestid_middleware(**kwargs):
     middleware = "log_request_id.middleware.RequestIDMiddleware"
     if middleware not in settings.MIDDLEWARES:
         errors.append(
-            Error(f"Missing {middleware} from MIDDLEWARES")
+            Error(
+                f"{middleware} non presente in MIDDLEWARES",
+                id="simc_djangochecks.E044",
+            )
         )
 
     return errors
@@ -22,7 +25,10 @@ def check_logger(**kwargs):
     log = settings.LOGGING
     if not log["disable_existing_loggers"]:
         errors.append(
-            Warning("Existing loggers not disabled")
+            Warning(
+                "Loggers di default non disabilitati",
+                id="simc_djangochecks.W045",
+            )
         )
 
     has_syslog = False
@@ -33,7 +39,11 @@ def check_logger(**kwargs):
             if not handler["facility"].startswith("local"):
                 errors.append(
                     Warning(
-                        "Syslog handler should use facility 'local{0..7}'"
+                        (
+                            "Syslog handler dovrebbe usare una delle facility "
+                            "'local{0..7}'"
+                        ),
+                        id="simc_djangochecks.W046",
                     )
                 )
 
@@ -49,14 +59,22 @@ def check_logger(**kwargs):
             if not has_debug_false_filter:
                 errors.append(
                     Warning(
-                        "syslog should have RequireDebugFalse filter"
+                        (
+                            "Syslog handler dovrebbe avere il "
+                            "filtro RequireDebugFalse"
+                        ),
+                        id="simc_djangochecks.W047",
                     )
                 )
 
             if not has_request_id_filter:
                 errors.append(
                     Warning(
-                        "syslog should have RequestIdFilter filter"
+                        (
+                            "Syslog handler dovrebbe avere il "
+                            "filtro RequestIdFilter"
+                        ),
+                        id="simc_djangochecks.W048",
                     )
                 )
 
@@ -66,14 +84,16 @@ def check_logger(**kwargs):
             ):
                 errors.append(
                     Warning(
-                        "wrong syslog format"
+                        "Il formato di syslog non è quello suggerito",
+                        id="simc_djangochecks.W049",
                     )
                 )
 
     if not has_syslog:
         errors.append(
-            Error(
-                "Missing syslog logger"
+            Warning(
+                "Syslog logger mancante",
+                id="simc_djangochecks.W050",
             )
         )
 
