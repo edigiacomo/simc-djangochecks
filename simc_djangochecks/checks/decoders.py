@@ -13,11 +13,11 @@ class PickleVisitor(ast.NodeVisitor):
     def visit_Import(self, node):
         for name in node.names:
             if name.name == "pickle":
-                self.nodes.append(node)
+                self.found = True
 
     def visit_ImportFrom(self, node):
         if node.module == "pickle":
-            self.nodes.append(node)
+            self.found = True
 
 
 @register(Tags.security)
@@ -29,7 +29,7 @@ def check_pickle(app_configs, **kwargs):
                 node = ast.parse(fp.read())
                 visitor = PickleVisitor()
                 visitor.visit(node)
-                for node in visitor.nodes:
+                if visitor.found:
                     errors.append(
                         Error(
                             "Il modulo pickle è sconsigliato",
@@ -63,7 +63,9 @@ def check_xml(app_configs, **kwargs):
         for path in Path(app.path).rglob("*.py"):
             with path.open() as fp:
                 node = ast.parse(fp.read())
-                if XmlVisitor().visit(node).found:
+                visitor = XmlVisitor()
+                visitor.visit(node)
+                if visitor.found:
                     errors.append(
                         Error(
                             "Il modulo xml è sconsigliato",
@@ -74,3 +76,5 @@ def check_xml(app_configs, **kwargs):
                             id="simc_djangochecks.E002",
                         )
                     )
+
+    return errors

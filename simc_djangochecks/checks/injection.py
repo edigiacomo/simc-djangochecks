@@ -1,7 +1,7 @@
 import ast
 from pathlib import Path
 
-from django.core.checks import register, Tags, Error
+from django.core.checks import register, Tags, Error, Warning
 
 from simc_djangochecks import utils
 
@@ -92,8 +92,11 @@ def check_sqlinjection(app_configs, **kwargs):
                 visitor.visit(module)
                 for node in visitor.nodes:
                     errors.append(
-                        Error(
-                            f"{app.name} usa extra/extra_content",
+                        Warning(
+                            (
+                                "Potenziale uso di extra/extra_content "
+                                f"in {app.name}"
+                            ),
                             id="E012",
                         )
                     )

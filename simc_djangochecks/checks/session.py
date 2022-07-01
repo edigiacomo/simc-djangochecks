@@ -47,20 +47,18 @@ def check_session_serializer(app_configs, **kwargs):
 @register(Tags.security)
 def check_session_type(app_configs, **kwargs):
     errors = []
-    if (
-        settings.SESSION_ENGINE == "django.contrib.sessions.backends.db"
-        and "django.contrib.sessions" not in settings.INSTALLED_APPS
-    ):
-        errors.append(
-            Error(
-                (
+    if settings.SESSION_ENGINE == "django.contrib.sessions.backends.db":
+        if "django.contrib.sessions" not in settings.INSTALLED_APPS:
+            errors.append(
+                Error(
+                    (
 
-                    "SESSION_ENGINE django.contrib.sessions.backends.db "
-                    "richiede django.contrib.sessions in INSTALLED_APPS"
-                ),
-                id="simc_djangochecks.E031",
+                        "SESSION_ENGINE django.contrib.sessions.backends.db "
+                        "richiede django.contrib.sessions in INSTALLED_APPS"
+                    ),
+                    id="simc_djangochecks.E031",
+                )
             )
-        )
     elif (
         settings.SESSION_ENGINE == "django.contrib.sessions.backends.file"
     ):
