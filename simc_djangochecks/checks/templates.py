@@ -36,7 +36,7 @@ def check_safe_tag(app_configs, **kwargs):
 
                 if re.search(r"[|]\s*safe", content):
                     errors.append(
-                        Error(
+                        Warning(
                             f"Uso del 'safe' filter nel template {path}",
                             id="simc_djangochecks.E016",
                         )
