@@ -44,7 +44,7 @@ def check_safe_tag(app_configs, **kwargs):
 
                 if re.search(r"[|]\s*safeseq", content):
                     errors.append(
-                        Error(
+                        Warning(
                             f"Uso di 'safeseq' filter in template {path}",
                             id="simc_djangochecks.E017",
                         )
